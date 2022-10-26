@@ -1,4 +1,5 @@
 import { Client, QueryResult, QueryResultRow } from "pg";
+import config from "./config";
 
 async function main() {
     const client = new Client();
@@ -11,24 +12,15 @@ class Database {
     client: Client;
 
     constructor() {
-        const { DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME } =
-            process.env;
-
-        if (!DB_USERNAME) throw new Error("DB_USERNAME is not set");
-        if (!DB_PASSWORD) throw new Error("DB_PASSWORD is not set");
-        if (!DB_HOST) throw new Error("DB_HOST is not set");
-        if (!DB_PORT) throw new Error("DB_PORT is not set");
-        if (!DB_NAME) throw new Error("DB_NAME is not set");
-
-        const port = parseInt(DB_PORT);
+        const port = parseInt(config.get("DB_PORT"));
         if (Number.isNaN(port)) throw new Error("DB_PORT is not a number");
 
         this.client = new Client({
-            user: DB_USERNAME,
-            password: DB_PASSWORD,
-            host: DB_HOST,
+            user: config.get("DB_USERNAME"),
+            password: config.get("DB_PASSWORD"),
+            host: config.get("DB_HOST"),
             port: port,
-            database: DB_NAME,
+            database: config.get("DB_NAME"),
         });
     }
 

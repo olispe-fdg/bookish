@@ -4,9 +4,7 @@ import bcrypt from "bcrypt";
 import db from "../Database";
 import { DatabaseError } from "pg";
 import jwt from "jsonwebtoken";
-
-const { JWT_SECRET } = process.env;
-if (!JWT_SECRET) throw new Error("JWT_SECRET is not set");
+import config from "../config";
 
 class AuthController extends Controller {
     constructor() {
@@ -84,7 +82,7 @@ class AuthController extends Controller {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
-        const token = jwt.sign({ email }, JWT_SECRET as string, {
+        const token = jwt.sign({ email }, config.get("JWT_SECRET") as string, {
             expiresIn: "1h",
         });
 

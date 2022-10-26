@@ -1,15 +1,13 @@
 import passport from "passport";
 import { ExtractJwt, Strategy as JwtStrategy } from "passport-jwt";
 import db from "../Database";
-
-const { JWT_SECRET } = process.env;
-if (!JWT_SECRET) throw new Error("JWT_SECRET is not set");
+import config from "../config";
 
 passport.use(
     new JwtStrategy(
         {
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            secretOrKey: JWT_SECRET,
+            secretOrKey: config.get("JWT_SECRET"),
         },
         async (payload, done) => {
             const accountQuery = await db.query(
