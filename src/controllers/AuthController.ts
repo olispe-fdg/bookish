@@ -8,9 +8,8 @@ class AuthController extends Controller {
     constructor() {
         super();
 
-        this.router.use(this.credentials);
-        this.bindPost("/login", this.loginUser);
-        this.bindPost("/register", this.registerUser);
+        this.bindPost("/login", this.credentials, this.loginUser);
+        this.bindPost("/register", this.credentials, this.registerUser);
     }
 
     credentials: RequestHandler = async (req, res, next) => {
@@ -63,22 +62,25 @@ class AuthController extends Controller {
         return res.status(201).json({ account: accountQuery.rows[0] });
     };
 
-    loginUser: RequestHandler = (req, res) => {
-        if (!req.body) {
-            return res.status(400).json({ message: "Body is required" });
-        }
-
+    loginUser: RequestHandler = async (req, res) => {
         const { email, password } = req.body;
 
-        if (!email) {
-            return res.status(400).json({ message: "Email is required" });
+        const accountQuery = await db.query(
+            "SELECT * FROM account WHERE email=$1::text",
+            [email]
+        );
+
+        if (accountQuery.rowCount === 0) {
+            return res.status(400).json({ message: "Invalid credentials" });
         }
 
-        if (!password) {
-            return res.status(400).json({ message: "Password is required" });
+        const account = accountQuery.rows[0];
+
+        if (!(await bcrypt.compare(password, account.password))) {
+            return res.status(400).json({ message: "Invalid credentials" });
         }
 
-        return res.status(200);
+        return res.status(200).json({ token: "jwttoken" });
     };
 }
 
