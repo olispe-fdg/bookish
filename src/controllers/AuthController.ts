@@ -8,11 +8,12 @@ class AuthController extends Controller {
     constructor() {
         super();
 
+        this.router.use(this.credentials);
         this.bindPost("/login", this.loginUser);
         this.bindPost("/register", this.registerUser);
     }
 
-    registerUser: RequestHandler = async (req, res) => {
+    credentials: RequestHandler = async (req, res, next) => {
         if (!req.body) {
             return res.status(400).json({ message: "Body is required" });
         }
@@ -26,6 +27,12 @@ class AuthController extends Controller {
         if (!password) {
             return res.status(400).json({ message: "Password is required" });
         }
+
+        return next();
+    };
+
+    registerUser: RequestHandler = async (req, res) => {
+        const { email, password } = req.body;
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -57,6 +64,20 @@ class AuthController extends Controller {
     };
 
     loginUser: RequestHandler = (req, res) => {
+        if (!req.body) {
+            return res.status(400).json({ message: "Body is required" });
+        }
+
+        const { email, password } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+
+        if (!password) {
+            return res.status(400).json({ message: "Password is required" });
+        }
+
         return res.status(200);
     };
 }

@@ -11,7 +11,10 @@ export class Controller {
         this.router.get(endpoint, callback.bind(this));
     }
 
-    protected bindPost(endpoint: string, callback: RequestHandler) {
-        this.router.post(endpoint, callback.bind(this));
+    protected bindPost(endpoint: string, ...handlers: RequestHandler[]) {
+        this.router.post(
+            endpoint,
+            ...handlers.map((handler) => handler.bind(this))
+        );
     }
 }
