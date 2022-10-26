@@ -1,17 +1,8 @@
-import express from "express";
-
 import dotenv from "dotenv";
 dotenv.config();
 
-import db from "./Database";
+import { Server } from "./Server";
 
-import { BookRoutes } from "./controllers";
+const server = new Server();
 
-const app = express();
-app.use("/books", BookRoutes);
-
-app.listen(8080, async () => {
-    console.log("Starting server...");
-
-    await db.connect();
-});
+server.start();
