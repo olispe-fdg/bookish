@@ -1,7 +1,8 @@
 import passport from "passport";
 import { ExtractJwt, Strategy as JwtStrategy } from "passport-jwt";
-import db from "../Database";
+import db from "../db/db";
 import config from "../config";
+import { Account } from "../db/Account";
 
 passport.use(
     new JwtStrategy(
@@ -10,12 +11,13 @@ passport.use(
             secretOrKey: config.get("JWT_SECRET"),
         },
         async (payload, done) => {
-            const accountQuery = await db.query(
-                "SELECT id FROM account WHERE email=$1::text",
-                [payload.email]
-            );
+            const account = await Account.findOne({
+                where: {
+                    email: payload.email,
+                },
+            });
 
-            if (accountQuery.rowCount === 0) {
+            if (!account) {
                 done(null, false);
             }
 

@@ -1,8 +1,8 @@
 import { RequestHandler } from "express";
-import db from "../Database";
 import { Controller } from "./Controller";
 import { BookRecord } from "../data/Book";
 import passport from "passport";
+import db from "../db/db";
 
 class BookController extends Controller {
     constructor() {
@@ -14,8 +14,7 @@ class BookController extends Controller {
 
     getBooks: RequestHandler = async (request, response, next) => {
         console.log("debug");
-        const book = await db.query<BookRecord>("SELECT * FROM book");
-        response.status(200).json(book.rows);
+        response.status(200).json([]);
     };
 }
 

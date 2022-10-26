@@ -1,5 +1,5 @@
 import express from "express";
-import db from "./Database";
+import db from "./db/db";
 import { AuthRoutes, BookRoutes } from "./controllers";
 
 export class Server {
@@ -16,8 +16,6 @@ export class Server {
     }
 
     async start() {
-        await db.connect();
-
         const port = 8080;
 
         this.setupEndpoints();

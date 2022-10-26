@@ -1,10 +1,11 @@
 import { RequestHandler } from "express";
 import { Controller } from "./Controller";
 import bcrypt from "bcrypt";
-import db from "../Database";
-import { DatabaseError } from "pg";
+import db from "../db/db";
 import jwt from "jsonwebtoken";
 import config from "../config";
+import { UniqueConstraintError } from "sequelize";
+import { Account } from "../db/Account";
 
 class AuthController extends Controller {
     constructor() {
@@ -38,47 +39,40 @@ class AuthController extends Controller {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         try {
-            await db.query(
-                "INSERT INTO account (email, password) VALUES ($1::text, $2::text)",
-                [email, hashedPassword]
-            );
+            await Account.create({
+                email,
+                password: hashedPassword,
+            });
         } catch (e) {
-            if (e instanceof DatabaseError) {
-                if (e.constraint) {
-                    return res.status(400).json({
-                        message: "A user with that email already exists",
-                    });
-                }
+            if (e instanceof UniqueConstraintError) {
+                return res.status(400).json({
+                    message: "A user with that email already exists",
+                });
             }
         }
 
-        const accountQuery = await db.query(
-            "SELECT id FROM account WHERE email=$1::text",
-            [email]
-        );
+        const account = await Account.findOne({ where: { email } });
 
-        if (accountQuery.rows.length !== 1) {
+        if (!account) {
             return res.status(500).json({ message: "Something went wrong" });
         }
 
-        return res.status(201).json({ account: accountQuery.rows[0] });
+        return res.status(201).json({ account });
     };
 
     loginUser: RequestHandler = async (req, res) => {
         const { email, password } = req.body;
 
-        const accountQuery = await db.query(
-            "SELECT * FROM account WHERE email=$1::text",
-            [email]
-        );
+        const account = await db.models.Account.findOne({
+            attributes: ["email", "password"],
+            where: { email },
+        });
 
-        if (accountQuery.rowCount === 0) {
+        if (!account) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
-        const account = accountQuery.rows[0];
-
-        if (!(await bcrypt.compare(password, account.password))) {
+        if (!(await bcrypt.compare(password, account.get("email") as string))) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
