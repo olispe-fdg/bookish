@@ -10,6 +10,7 @@ export class Server {
     }
 
     setupEndpoints() {
+        this.app.use(express.json());
         this.app.use("/books", BookRoutes);
         this.app.use("/auth", AuthRoutes);
     }
