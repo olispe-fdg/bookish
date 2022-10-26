@@ -1,0 +1,1 @@
+export { BookController } from "./Book";
