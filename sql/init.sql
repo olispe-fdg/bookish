@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS account (
 	id SERIAL PRIMARY KEY,
-	email TEXT,
+	email TEXT UNIQUE,
 	password TEXT
 );
 
