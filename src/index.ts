@@ -5,13 +5,13 @@ dotenv.config();
 
 import db from "./Database";
 
-async function main() {
+import { BookRoutes } from "./controllers";
+
+const app = express();
+app.use("/books", BookRoutes);
+
+app.listen(8080, async () => {
+    console.log("Starting server...");
+
     await db.connect();
-
-    const response = await db.query("SELECT * FROM book");
-    console.log(response);
-
-    await db.end();
-}
-
-main();
+});
