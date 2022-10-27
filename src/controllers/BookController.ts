@@ -107,6 +107,9 @@ class BookController extends Controller {
                     //@ts-ignore
                     (await book.getSubjects()).map((subject) => subject.name)
                 ),
+
+                //@ts-ignore
+                copies: (await book.getBookCopies()).length,
             }))
         );
 
