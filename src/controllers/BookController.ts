@@ -3,6 +3,7 @@ import { Controller } from "./Controller";
 import { BookRecord } from "../data/Book";
 import passport from "passport";
 import db from "../db/db";
+import { Book } from "../db/Book";
 
 class BookController extends Controller {
     constructor() {
@@ -14,7 +15,8 @@ class BookController extends Controller {
 
     getBooks: RequestHandler = async (request, response, next) => {
         console.log("debug");
-        response.status(200).json([]);
+        const books = await Book.findAll();
+        response.status(200).json(books);
     };
 }
 

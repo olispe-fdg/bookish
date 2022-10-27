@@ -16,6 +16,7 @@ export const Account = db.define(
     },
     {
         tableName: "account",
+        timestamps: false,
     }
 );
 

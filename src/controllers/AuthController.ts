@@ -51,7 +51,10 @@ class AuthController extends Controller {
             }
         }
 
-        const account = await Account.findOne({ where: { email } });
+        const account = await Account.findOne({
+            attributes: ["", "email"],
+            where: { email },
+        });
 
         if (!account) {
             return res.status(500).json({ message: "Something went wrong" });
@@ -72,7 +75,9 @@ class AuthController extends Controller {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
-        if (!(await bcrypt.compare(password, account.get("email") as string))) {
+        if (
+            !(await bcrypt.compare(password, account.get("password") as string))
+        ) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 

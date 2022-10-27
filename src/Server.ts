@@ -16,7 +16,7 @@ export class Server {
     }
 
     async start() {
-        const port = 8080;
+        const port = 5000;
 
         this.setupEndpoints();
 
