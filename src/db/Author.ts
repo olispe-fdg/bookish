@@ -11,6 +11,11 @@ export const Author = db.define(
             allowNull: false,
             unique: true,
         },
+        name: {
+            type: DataTypes.TEXT,
+            allowNull: false,
+            unique: true,
+        },
     },
     {
         tableName: "author",

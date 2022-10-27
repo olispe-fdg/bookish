@@ -52,7 +52,7 @@ class BookController extends Controller {
             this.validateQueryParams(SearchParams),
             this.getBooks
         );
-        this.bindPost("/", this.validateBody(NewBookBody), this.createBook);
+        this.bindPost("/", this.validateBody(NewBookBody), this.postBook);
     }
 
     getBooks: RequestHandler = async (request, response, next) => {
@@ -84,7 +84,7 @@ class BookController extends Controller {
         response.status(200).json(books);
     };
 
-    createBook: RequestHandler = async (request, response) => {
+    postBook: RequestHandler = async (request, response) => {
         const {
             title,
             subtitle,
@@ -104,6 +104,8 @@ class BookController extends Controller {
                 slug: await this.generateSlug(title),
             });
 
+            await this.createBookAuthors(book.get("id") as number, authors);
+
             return response.status(201).json({ book });
         } catch (e) {
             if (e instanceof UniqueConstraintError) {
@@ -114,10 +116,33 @@ class BookController extends Controller {
         }
     };
 
+    private async createBookAuthors(bookId: number, authors: string[]) {
+        const authorIds = await Promise.all(
+            authors.map(async (name: string) => {
+                const row = await Author.findOne({ where: { name } });
+
+                if (row) return row.get("id");
+
+                console.log(name);
+
+                const newAuthor = await Author.create({ name: name });
+
+                return newAuthor.get("id");
+            })
+        );
+
+        await BookAuthor.bulkCreate(
+            authorIds.map((authorId) => ({
+                book_id: bookId,
+                author_id: authorId,
+            }))
+        );
+    }
+
     private async generateSlug(title: string): Promise<string> {
         const base = slug(title);
 
-        const { rows, count } = await Book.findAndCountAll({
+        const count = await Book.count({
             where: {
                 slug: {
                     [Op.like]: `${base}%`,
