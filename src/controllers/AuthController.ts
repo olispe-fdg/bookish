@@ -82,9 +82,7 @@ class AuthController extends Controller {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
-        const token = jwt.sign({ email }, config.get("JWT_SECRET") as string, {
-            expiresIn: "1h",
-        });
+        const token = jwt.sign({ email }, config.get("JWT_SECRET") as string);
 
         return res.status(200).json({ token: token });
     };

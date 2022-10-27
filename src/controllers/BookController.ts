@@ -5,6 +5,7 @@ import { Book } from "../db/Book";
 import { Schema } from "../interface/schema.interface";
 import sequelize from "sequelize";
 import { Author } from "../db/Author";
+import { BookAuthor } from "../db/BookAuthor";
 
 const SearchParams: Schema = {
     title: {
@@ -72,6 +73,10 @@ class BookController extends Controller {
             include: {
                 model: Author,
                 attributes: ["name"],
+                through: {
+                    attributes: [],
+                },
+                as: "authors",
             },
         });
         response.status(200).json(books);

@@ -49,6 +49,7 @@ BookCopy.belongsTo(Book);
 Book.belongsToMany(Author, {
     through: BookAuthor,
     foreignKey: "book_id",
+    as: "authors",
 });
 Author.belongsToMany(Book, {
     through: BookAuthor,
