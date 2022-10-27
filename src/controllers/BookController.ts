@@ -8,6 +8,7 @@ import { Author } from "../db/Author";
 import { BookAuthor } from "../db/BookAuthor";
 import db from "../db/db";
 import slug from "limax";
+import { BookCopy } from "../db/BookCopy";
 
 const SearchParams: Schema = {
     title: {
@@ -104,7 +105,12 @@ class BookController extends Controller {
                 slug: await this.generateSlug(title),
             });
 
-            await this.createBookAuthors(book.get("id") as number, authors);
+            const bookId = book.get("id") as number;
+
+            await this.createBookAuthors(bookId, authors);
+
+            console.log("Creating copies");
+            await this.createBookCopies(bookId, copies);
 
             return response.status(201).json({ book });
         } catch (e) {
@@ -116,14 +122,20 @@ class BookController extends Controller {
         }
     };
 
+    private async createBookCopies(bookId: number, copies: number) {
+        const bookCopies = Array.from({ length: copies }, () => ({
+            book_id: bookId,
+        }));
+
+        await BookCopy.bulkCreate(bookCopies);
+    }
+
     private async createBookAuthors(bookId: number, authors: string[]) {
         const authorIds = await Promise.all(
             authors.map(async (name: string) => {
                 const row = await Author.findOne({ where: { name } });
 
                 if (row) return row.get("id");
-
-                console.log(name);
 
                 const newAuthor = await Author.create({ name: name });
 

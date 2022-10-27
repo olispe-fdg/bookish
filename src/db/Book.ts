@@ -43,7 +43,9 @@ export const Book = db.define(
 Book.hasMany(BookCopy, {
     foreignKey: "book_id",
 });
-BookCopy.belongsTo(Book);
+BookCopy.belongsTo(Book, {
+    foreignKey: "book_id",
+});
 
 // Many to many relationship
 Book.belongsToMany(Author, {
