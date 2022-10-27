@@ -6,32 +6,28 @@ import jwt from "jsonwebtoken";
 import config from "../config";
 import { UniqueConstraintError } from "sequelize";
 import { Account } from "../db/Account";
+import { Schema } from "../interface/schema.interface";
+
+const Credentials: Schema = {
+    email: {
+        type: "string",
+    },
+    password: {
+        type: "string",
+    },
+};
 
 class AuthController extends Controller {
     constructor() {
         super();
 
-        this.bindPost("/login", this.credentials, this.loginUser);
-        this.bindPost("/register", this.credentials, this.registerUser);
+        this.bindPost("/login", this.validateBody(Credentials), this.loginUser);
+        this.bindPost(
+            "/register",
+            this.validateBody(Credentials),
+            this.registerUser
+        );
     }
-
-    credentials: RequestHandler = async (req, res, next) => {
-        if (!req.body) {
-            return res.status(400).json({ message: "Body is required" });
-        }
-
-        const { email, password } = req.body;
-
-        if (!email) {
-            return res.status(400).json({ message: "Email is required" });
-        }
-
-        if (!password) {
-            return res.status(400).json({ message: "Password is required" });
-        }
-
-        return next();
-    };
 
     registerUser: RequestHandler = async (req, res) => {
         const { email, password } = req.body;
@@ -49,10 +45,14 @@ class AuthController extends Controller {
                     message: "A user with that email already exists",
                 });
             }
+
+            return res.status(500).json({
+                message: `Could not create account`,
+            });
         }
 
         const account = await Account.findOne({
-            attributes: ["", "email"],
+            attributes: ["id", "email"],
             where: { email },
         });
 

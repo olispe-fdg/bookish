@@ -4,6 +4,13 @@ import db from "./db";
 export const Account = db.define(
     "Account",
     {
+        id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+            allowNull: false,
+            unique: true,
+        },
         email: {
             type: DataTypes.STRING,
             allowNull: false,
