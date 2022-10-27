@@ -52,14 +52,17 @@ class BookController extends Controller {
     }
 
     getBooks: RequestHandler = async (request, response, next) => {
-        const { title, author } = request.query;
+        const { title, author } = request.query as {
+            title: string;
+            author: string;
+        };
 
         let where: { [key: string]: any } = {};
         if (title) {
             where.title = sequelize.where(
                 sequelize.fn("LOWER", sequelize.col("title")),
                 "LIKE",
-                `%${title}%`
+                `%${title.toLowerCase()}%`
             );
         }
 
