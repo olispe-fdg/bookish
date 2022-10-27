@@ -3,6 +3,7 @@ import { Controller } from "./Controller";
 import passport from "passport";
 import { Book } from "../db/Book";
 import { Schema } from "../interface/schema.interface";
+import sequelize from "sequelize";
 
 const SearchParams: Schema = {
     title: {
@@ -51,8 +52,20 @@ class BookController extends Controller {
     }
 
     getBooks: RequestHandler = async (request, response, next) => {
-        console.log(request.query);
-        const books = await Book.findAll();
+        const { title, author } = request.query;
+
+        let where: { [key: string]: any } = {};
+        if (title) {
+            where.title = sequelize.where(
+                sequelize.fn("LOWER", sequelize.col("title")),
+                "LIKE",
+                `%${title}%`
+            );
+        }
+
+        const books = await Book.findAll({
+            where: where,
+        });
         response.status(200).json(books);
     };
 
