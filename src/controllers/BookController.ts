@@ -3,9 +3,11 @@ import { Controller } from "./Controller";
 import passport from "passport";
 import { Book } from "../db/Book";
 import { Schema } from "../interface/schema.interface";
-import sequelize from "sequelize";
+import sequelize, { Op, UniqueConstraintError } from "sequelize";
 import { Author } from "../db/Author";
 import { BookAuthor } from "../db/BookAuthor";
+import db from "../db/db";
+import slug from "limax";
 
 const SearchParams: Schema = {
     title: {
@@ -83,8 +85,52 @@ class BookController extends Controller {
     };
 
     createBook: RequestHandler = async (request, response) => {
-        return response.status(201).json();
+        const {
+            title,
+            subtitle,
+            cover_photo_url,
+            isbn,
+            copies,
+            authors,
+            subjects,
+        } = request.body;
+
+        try {
+            const book = await Book.create({
+                title,
+                subtitle,
+                cover_photo_url,
+                isbn,
+                slug: await this.generateSlug(title),
+            });
+
+            return response.status(201).json({ book });
+        } catch (e) {
+            if (e instanceof UniqueConstraintError) {
+                return response
+                    .status(400)
+                    .json({ message: "A book with that ISBN already exists" });
+            }
+        }
     };
+
+    private async generateSlug(title: string): Promise<string> {
+        const base = slug(title);
+
+        const { rows, count } = await Book.findAndCountAll({
+            where: {
+                slug: {
+                    [Op.like]: `${base}%`,
+                },
+            },
+        });
+
+        if (count > 0) {
+            return `${base}-${count}`;
+        }
+
+        return base;
+    }
 }
 
 export default new BookController().router;
