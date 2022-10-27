@@ -72,29 +72,45 @@ class BookController extends Controller {
                 `%${title.toLowerCase()}%`
             );
         }
+        if (author) {
+            where["Authors.name"] = sequelize.where(
+                sequelize.fn("LOWER", sequelize.col("Authors.name")),
+                "LIKE",
+                `%${author.toLowerCase()}%`
+            );
+        }
 
         const books = await Book.findAll({
             where: where,
             include: [
                 {
                     model: Author,
-                    attributes: ["name"],
-                    through: {
-                        attributes: [],
-                    },
-                    as: "authors",
                 },
                 {
                     model: Subject,
-                    attributes: ["name"],
-                    through: {
-                        attributes: [],
-                    },
-                    as: "subjects",
                 },
             ],
         });
-        response.status(200).json(books);
+
+        const populatedBooks = await Promise.all(
+            books.map(async (book) => ({
+                title: book.get("title"),
+                subtitle: book.get("subtitle"),
+                cover_photo_url: book.get("cover_photo_url"),
+                isbn: book.get("isbn"),
+
+                authors: await Promise.all(
+                    //@ts-ignore
+                    (await book.getAuthors()).map((author) => author.name)
+                ),
+                subjects: await Promise.all(
+                    //@ts-ignore
+                    (await book.getSubjects()).map((subject) => subject.name)
+                ),
+            }))
+        );
+
+        response.status(200).json(populatedBooks);
     };
 
     postBook: RequestHandler = async (request, response) => {
