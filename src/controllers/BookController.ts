@@ -9,6 +9,8 @@ import { BookAuthor } from "../db/BookAuthor";
 import db from "../db/db";
 import slug from "limax";
 import { BookCopy } from "../db/BookCopy";
+import { Subject } from "../db/Subject";
+import { BookSubject } from "../db/BookSubject";
 
 const SearchParams: Schema = {
     title: {
@@ -73,14 +75,24 @@ class BookController extends Controller {
 
         const books = await Book.findAll({
             where: where,
-            include: {
-                model: Author,
-                attributes: ["name"],
-                through: {
-                    attributes: [],
+            include: [
+                {
+                    model: Author,
+                    attributes: ["name"],
+                    through: {
+                        attributes: [],
+                    },
+                    as: "authors",
                 },
-                as: "authors",
-            },
+                {
+                    model: Subject,
+                    attributes: ["name"],
+                    through: {
+                        attributes: [],
+                    },
+                    as: "subjects",
+                },
+            ],
         });
         response.status(200).json(books);
     };
@@ -109,6 +121,8 @@ class BookController extends Controller {
 
             await this.createBookAuthors(bookId, authors);
 
+            await this.createBookSubjects(bookId, subjects);
+
             console.log("Creating copies");
             await this.createBookCopies(bookId, copies);
 
@@ -128,6 +142,27 @@ class BookController extends Controller {
         }));
 
         await BookCopy.bulkCreate(bookCopies);
+    }
+
+    private async createBookSubjects(bookId: number, subjects: string[]) {
+        const subjectIds = await Promise.all(
+            subjects.map(async (name: string) => {
+                const row = await Subject.findOne({ where: { name } });
+
+                if (row) return row.get("id");
+
+                const newSubject = await Subject.create({ name: name });
+
+                return newSubject.get("id");
+            })
+        );
+
+        await BookSubject.bulkCreate(
+            subjectIds.map((subjectId) => ({
+                book_id: bookId,
+                subject_id: subjectId,
+            }))
+        );
     }
 
     private async createBookAuthors(bookId: number, authors: string[]) {

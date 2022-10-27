@@ -4,6 +4,8 @@ import db from "./db";
 import "./BookAuthor";
 import { BookAuthor } from "./BookAuthor";
 import { Author } from "./Author";
+import { Subject } from "./Subject";
+import { BookSubject } from "./BookSubject";
 
 export const Book = db.define(
     "Book",
@@ -56,6 +58,17 @@ Book.belongsToMany(Author, {
 Author.belongsToMany(Book, {
     through: BookAuthor,
     foreignKey: "author_id",
+});
+
+// Many to many relationship
+Book.belongsToMany(Subject, {
+    through: BookSubject,
+    foreignKey: "book_id",
+    as: "subjects",
+});
+Subject.belongsToMany(Book, {
+    through: BookSubject,
+    foreignKey: "subject_id",
 });
 
 console.log(Book === db.models.Book);
