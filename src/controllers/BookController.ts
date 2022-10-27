@@ -4,6 +4,7 @@ import passport from "passport";
 import { Book } from "../db/Book";
 import { Schema } from "../interface/schema.interface";
 import sequelize from "sequelize";
+import { Author } from "../db/Author";
 
 const SearchParams: Schema = {
     title: {
@@ -68,6 +69,10 @@ class BookController extends Controller {
 
         const books = await Book.findAll({
             where: where,
+            include: {
+                model: Author,
+                attributes: ["name"],
+            },
         });
         response.status(200).json(books);
     };
