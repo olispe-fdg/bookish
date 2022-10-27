@@ -4,6 +4,17 @@ import passport from "passport";
 import { Book } from "../db/Book";
 import { Schema } from "../interface/schema.interface";
 
+const SearchParams: Schema = {
+    title: {
+        type: "string",
+        optional: true,
+    },
+    author: {
+        type: "string",
+        optional: true,
+    },
+};
+
 const NewBookBody: Schema = {
     title: {
         type: "string",
@@ -31,12 +42,16 @@ class BookController extends Controller {
         super();
 
         this.router.use(passport.authenticate("jwt", { session: false }));
-        this.bindGet("/", this.getBooks);
+        this.bindGet(
+            "/",
+            this.validateQueryParams(SearchParams),
+            this.getBooks
+        );
         this.bindPost("/", this.validateBody(NewBookBody), this.createBook);
     }
 
     getBooks: RequestHandler = async (request, response, next) => {
-        console.log("debug");
+        console.log(request.query);
         const books = await Book.findAll();
         response.status(200).json(books);
     };

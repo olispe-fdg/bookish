@@ -46,6 +46,7 @@ class AuthController extends Controller {
                 });
             }
 
+            console.error(e);
             return res.status(500).json({
                 message: `Could not create account`,
             });

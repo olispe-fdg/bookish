@@ -9,6 +9,7 @@ config.config([
     "DB_PORT",
     "DB_HOST",
     "JWT_SECRET",
+    "PORT",
 ]);
 
 import "./strategies/jwt";

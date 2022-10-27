@@ -1,6 +1,6 @@
 import express from "express";
-import db from "./db/db";
 import { AuthRoutes, BookRoutes } from "./controllers";
+import config from "./config";
 
 export class Server {
     app: express.Express;
@@ -16,7 +16,10 @@ export class Server {
     }
 
     async start() {
-        const port = 5000;
+        const port = parseInt(config.get("PORT"));
+        if (Number.isNaN(port)) {
+            throw new Error("Configured port is not a number");
+        }
 
         this.setupEndpoints();
 
