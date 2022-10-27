@@ -55,6 +55,7 @@ class BookController extends Controller {
             this.validateQueryParams(SearchParams),
             this.getBooks
         );
+        this.bindGet("/:id", this.getBook);
         this.bindPost("/", this.validateBody(NewBookBody), this.postBook);
     }
 
@@ -93,27 +94,28 @@ class BookController extends Controller {
         });
 
         const populatedBooks = await Promise.all(
-            books.map(async (book) => ({
-                title: book.get("title"),
-                subtitle: book.get("subtitle"),
-                cover_photo_url: book.get("cover_photo_url"),
-                isbn: book.get("isbn"),
-
-                authors: await Promise.all(
-                    //@ts-ignore
-                    (await book.getAuthors()).map((author) => author.name)
-                ),
-                subjects: await Promise.all(
-                    //@ts-ignore
-                    (await book.getSubjects()).map((subject) => subject.name)
-                ),
-
-                //@ts-ignore
-                copies: (await book.getBookCopies()).length,
-            }))
+            books.map(async (book) => await this.lazyLoadBook(book))
         );
 
         response.status(200).json(populatedBooks);
+    };
+
+    getBook: RequestHandler = async (request, response) => {
+        const bookId = request.params.id;
+
+        const book = await Book.findOne({
+            where: {
+                id: bookId,
+            },
+        });
+
+        if (!book) {
+            return response
+                .status(400)
+                .json({ message: `Book ${bookId} does not exist` });
+        }
+
+        response.status(200).json(await this.lazyLoadBook(book));
     };
 
     postBook: RequestHandler = async (request, response) => {
@@ -221,6 +223,28 @@ class BookController extends Controller {
         }
 
         return base;
+    }
+
+    private async lazyLoadBook(book: sequelize.Model<any, any>): Promise<any> {
+        return {
+            id: book.get("id"),
+            title: book.get("title"),
+            subtitle: book.get("subtitle"),
+            cover_photo_url: book.get("cover_photo_url"),
+            isbn: book.get("isbn"),
+
+            authors: await Promise.all(
+                //@ts-ignore
+                (await book.getAuthors()).map((author) => author.name)
+            ),
+            subjects: await Promise.all(
+                //@ts-ignore
+                (await book.getSubjects()).map((subject) => subject.name)
+            ),
+
+            //@ts-ignore
+            copies: (await book.getBookCopies()).length,
+        };
     }
 }
 
